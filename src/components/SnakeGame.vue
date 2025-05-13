@@ -535,6 +535,11 @@ export default {
         this.hideGameEnd()
       }
       
+      // 先调用resetGame重置游戏状态
+      if (this.gameOver) {
+        this.resetGame()
+      }
+      
       this.countdownActive = true
       this.countdown = 3
       
@@ -549,9 +554,6 @@ export default {
     },
     startGame() {
       if (this.gameRunning) return
-      
-      // 重置游戏状态
-      this.resetGame()
       
       // 开始游戏循环
       this.gameRunning = true
@@ -1312,6 +1314,9 @@ export default {
       // 隐藏模态框
       this.hideGameEnd()
       
+      // 确保先重置游戏
+      this.resetGame()
+      
       // 延迟一点点再开始游戏，确保模态框完全关闭
       setTimeout(() => {
         this.startGameCountdown()
@@ -1343,6 +1348,11 @@ export default {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  height: calc(100vh - 120px); /* 减去头部标题的高度 */
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0 20px;
+  position: relative;
 }
 
 .game-board-container {
@@ -1356,7 +1366,9 @@ export default {
   width: 260px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px; /* 减小间距 */
+  max-height: 100%; /* 限制最大高度 */
+  overflow-y: auto; /* 如果内容过多，允许侧栏滚动 */
 }
 
 /* 调整游戏数据部分的高度 */
@@ -1589,6 +1601,8 @@ input[type="color"] {
   display: grid;
   width: 500px;
   height: 500px;
+  max-width: 90vmin; /* 响应式调整 */
+  max-height: 90vmin; /* 响应式调整 */
   background-color: #232741;
   border: 2px solid #333a56;
   border-radius: 10px;
@@ -1950,14 +1964,14 @@ input[type="color"] {
 }
 
 .language-switcher {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .language-select {
-  background-color: rgba(30, 30, 60, 0.7);
+  background-color: rgba(30, 30, 60, 0.9);
   color: #4ecca3;
   padding: 8px 15px;
   border: 1px solid #4ecca3;
@@ -1974,7 +1988,7 @@ input[type="color"] {
   background-repeat: no-repeat;
   background-position: right 8px center;
   padding-right: 30px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .language-select:hover {

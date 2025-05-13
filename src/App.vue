@@ -3,6 +3,9 @@
     <h1>Modern Snake</h1>
     <h2 class="subtitle">现代贪吃蛇</h2>
     <SnakeGame />
+    <div class="open-source-info">
+      项目已开源，请访问<a href="https://github.com/Criel14/modern-snake-app" target="_blank" rel="noopener noreferrer">仓库</a>
+    </div>
   </div>
 </template>
 
@@ -24,17 +27,25 @@ body {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #fff;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  min-height: 100vh;
-  overflow-y: auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
 }
 
 #app {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0 40px;
-  min-height: 100vh;
+  padding: 20px 0;
+  height: 100vh;
+  box-sizing: border-box;
   text-align: center;
+  overflow: hidden;
+  position: relative;
 }
 
 h1 {
@@ -53,5 +64,29 @@ h1 {
   font-size: 1.5rem;
   color: #4ecca3;
   opacity: 0.8;
+}
+
+.open-source-info {
+  position: absolute;
+  bottom: 5%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 10px;
+  z-index: 10;
+}
+
+.open-source-info a {
+  color: rgba(78, 204, 163, 0.8);
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+.open-source-info a:hover {
+  color: #5fddaf;
+  text-shadow: 0 0 5px rgba(78, 204, 163, 0.4);
 }
 </style>
