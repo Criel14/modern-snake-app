@@ -1,11 +1,17 @@
 <template>
   <div class="game-container">
+    <div class="language-switcher">
+      <select class="language-select" v-model="currentLanguage" @change="saveLanguageSettings">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+      </select>
+    </div>
     <div class="game-controls">
       <div class="control-panel">
-        <h2>游戏控制</h2>
+        <h2>{{ t('gameControls') }}</h2>
         
         <div class="game-mode">
-          <h3>游戏模式</h3>
+          <h3>{{ t('gameMode') }}</h3>
           <div class="mode-buttons">
             <button 
               class="mode-button" 
@@ -13,7 +19,7 @@
               @click="setGameMode('classic')" 
               :disabled="gameRunning"
             >
-              经典模式
+              {{ t('classicMode') }}
             </button>
             <button 
               class="mode-button" 
@@ -21,7 +27,7 @@
               @click="setGameMode('speed')" 
               :disabled="gameRunning"
             >
-              竞速模式
+              {{ t('speedMode') }}
             </button>
           </div>
           <div class="mode-description">
@@ -30,15 +36,15 @@
         </div>
         
         <button class="start-button" @click="startGameCountdown" :disabled="gameRunning || countdownActive">
-          {{ countdownActive ? `倒计时: ${countdown}` : '开始游戏' }}
+          {{ countdownActive ? `${t('countdown')}: ${countdown}` : t('startGame') }}
         </button>
-        <button class="reset-button" @click="resetGame" :disabled="!gameOver && !gameRunning">重置游戏</button>
-        <button class="rules-button" @click="showRulesModal">查看游戏规则</button>
+        <button class="reset-button" @click="resetGame" :disabled="!gameOver && !gameRunning">{{ t('resetGame') }}</button>
+        <button class="rules-button" @click="showRulesModal">{{ t('viewRules') }}</button>
         
         <div class="speed-control">
-          <h3>游戏速度</h3>
+          <h3>{{ t('gameSpeed') }}</h3>
           <div class="slider-container">
-            <span class="speed-label">慢</span>
+            <span class="speed-label">{{ t('slow') }}</span>
             <input 
               type="range" 
               min="100" 
@@ -48,20 +54,20 @@
               :disabled="gameRunning" 
               class="custom-slider"
             />
-            <span class="speed-label">快</span>
+            <span class="speed-label">{{ t('fast') }}</span>
           </div>
           <div class="speed-value">{{ 400 - gameSpeed }}ms</div>
         </div>
         
-        <button class="color-settings-button" @click="showColorSettingsModal">自定义样式</button>
+        <button class="color-settings-button" @click="showColorSettingsModal">{{ t('customizeStyle') }}</button>
       </div>
     </div>
     
     <div class="game-board-container">
       <div class="game-info">
-        <div class="score">得分: {{ score }}</div>
-        <div class="status" v-if="gameOver">游戏结束!</div>
-        <div class="status" v-else-if="gamePaused">游戏暂停</div>
+        <div class="score">{{ t('score') }}: {{ score }}</div>
+        <div class="status" v-if="gameOver">{{ t('gameOver') }}!</div>
+        <div class="status" v-else-if="gamePaused">{{ t('gamePaused') }}</div>
       </div>
       
       <div 
@@ -92,18 +98,18 @@
     
     <div class="game-stats">
       <div class="game-metrics">
-        <h2>游戏数据</h2>
+        <h2>{{ t('gameData') }}</h2>
         <div class="metric-item">
-          <span class="metric-label">游戏时间:</span>
+          <span class="metric-label">{{ t('gameTime') }}:</span>
           <span class="metric-value">{{ formatTime(gameTime) }}</span>
         </div>
         <div class="metric-item" v-if="score > 0">
-          <span class="metric-label">速度:</span>
-          <span class="metric-value">{{ timePerApple }}秒/苹果</span>
+          <span class="metric-label">{{ t('speed') }}:</span>
+          <span class="metric-value">{{ timePerApple }}{{ t('secondsPerApple') }}</span>
         </div>
         <div class="metric-item" v-if="gameMode === 'speed'">
-          <span class="metric-label">目标:</span>
-          <span class="metric-value">{{ score }}/40 个苹果</span>
+          <span class="metric-label">{{ t('target') }}:</span>
+          <span class="metric-value">{{ score }}/40 {{ t('apples') }}</span>
         </div>
         <div class="progress-bar" v-if="gameMode === 'speed'">
           <div class="progress" :style="{ width: `${(score / 40) * 100}%` }"></div>
@@ -111,11 +117,11 @@
       </div>
       
       <div class="high-scores">
-        <h2>{{ gameMode === 'classic' ? '最高分' : '最佳时间' }}</h2>
+        <h2>{{ gameMode === 'classic' ? t('highestScore') : t('bestTime') }}</h2>
         <div class="score-list">
           <div v-for="(record, index) in displayHighScores" :key="index" class="high-score-item">
             <span>{{ index + 1 }}.</span>
-            <span v-if="gameMode === 'classic'">{{ record.score }}分</span>
+            <span v-if="gameMode === 'classic'">{{ record.score }}{{ t('points') }}</span>
             <span v-else class="score-time">{{ formatTime(record.time) }}</span>
           </div>
         </div>
@@ -132,38 +138,38 @@
          @click.stop
          :class="{ 'slide-down': isRulesClosing }">
       <div class="modal-header">
-        <h2>游戏规则</h2>
+        <h2>{{ t('gameRules') }}</h2>
         <button class="close-button" @click="hideRules">&times;</button>
       </div>
       <div class="modal-body">
-        <h3>基本操作</h3>
+        <h3>{{ t('basicControls') }}</h3>
         <ul>
-          <li>使用 W, A, S, D 键或方向键控制蛇的移动方向</li>
-          <li>按空格键启动快速突进模式，直到突进到蛇身/苹果/墙体</li>
-          <li>按 ESC 键暂停游戏</li>
+          <li>{{ t('controlsDescription1') }}</li>
+          <li>{{ t('controlsDescription2') }}</li>
+          <li>{{ t('controlsDescription3') }}</li>
         </ul>
         
-        <h3>游戏特色</h3>
+        <h3>{{ t('gameFeatures') }}</h3>
         <ul>
-          <li>蛇撞墙或撞到自身时有1秒反应时间</li>
-          <li>在危险状态下按方向键可避免游戏结束</li>
-          <li>成功改变方向后蛇会立即移动并退出危险状态</li>
-          <li>危险状态下蛇身会闪烁发光提示</li>
-          <li>突进模式下蛇会以极快速度移动，直到撞到障碍物或吃到苹果</li>
+          <li>{{ t('featuresDescription1') }}</li>
+          <li>{{ t('featuresDescription2') }}</li>
+          <li>{{ t('featuresDescription3') }}</li>
+          <li>{{ t('featuresDescription4') }}</li>
+          <li>{{ t('featuresDescription5') }}</li>
         </ul>
         
-        <h3>游戏模式</h3>
+        <h3>{{ t('gameModes') }}</h3>
         <ul>
-          <li><b>经典模式</b>：无时间限制，吃更多苹果获得高分</li>
-          <li><b>竞速模式</b>：以最快速度吃满40个苹果</li>
+          <li><b>{{ t('classicMode') }}</b>：{{ t('classicModeDescription') }}</li>
+          <li><b>{{ t('speedMode') }}</b>：{{ t('speedModeDescription') }}</li>
         </ul>
         
-        <h3>小提示</h3>
+        <h3>{{ t('tips') }}</h3>
         <ul>
-          <li>提前计划路线避免死路</li>
-          <li>蛇撞墙后及时转向可以挽救危机</li>
-          <li>合理使用空格突进可以快速抢食苹果</li>
-          <li>注意观察危险提示，把握逃脱时机</li>
+          <li>{{ t('tipsDescription1') }}</li>
+          <li>{{ t('tipsDescription2') }}</li>
+          <li>{{ t('tipsDescription3') }}</li>
+          <li>{{ t('tipsDescription4') }}</li>
         </ul>
       </div>
     </div>
@@ -178,31 +184,31 @@
          @click.stop
          :class="{ 'slide-down': isColorSettingsClosing }">
       <div class="modal-header">
-        <h2>自定义样式</h2>
+        <h2>{{ t('customizeStyle') }}</h2>
         <button class="close-button" @click="hideColorSettings">&times;</button>
       </div>
       <div class="modal-body">
         <div class="color-setting-item">
-          <label for="snake-color">蛇的颜色</label>
+          <label for="snake-color">{{ t('snakeColor') }}</label>
           <input id="snake-color" type="color" v-model="snakeColor" :disabled="gameRunning" @change="updateSnakeColor" />
         </div>
         
         <div class="color-setting-item">
-          <label for="apple-color">苹果颜色</label>
+          <label for="apple-color">{{ t('appleColor') }}</label>
           <input id="apple-color" type="color" v-model="appleColor" :disabled="gameRunning" @change="updateAppleColor" />
         </div>
         
         <div class="color-setting-item">
-          <label for="danger-color">危险提示颜色</label>
+          <label for="danger-color">{{ t('dangerColor') }}</label>
           <input id="danger-color" type="color" v-model="dangerColor" :disabled="gameRunning" @change="updateDangerColor" />
         </div>
         
         <div class="color-presets">
-          <h3>预设方案</h3>
+          <h3>{{ t('presets') }}</h3>
           <div class="preset-buttons">
-            <button @click="applyColorPreset('default')" :disabled="gameRunning">默认配色</button>
-            <button @click="applyColorPreset('dark')" :disabled="gameRunning">暗黑模式</button>
-            <button @click="applyColorPreset('neon')" :disabled="gameRunning">霓虹风格</button>
+            <button @click="applyColorPreset('default')" :disabled="gameRunning">{{ t('defaultColor') }}</button>
+            <button @click="applyColorPreset('dark')" :disabled="gameRunning">{{ t('darkMode') }}</button>
+            <button @click="applyColorPreset('neon')" :disabled="gameRunning">{{ t('neonStyle') }}</button>
           </div>
         </div>
       </div>
@@ -249,6 +255,119 @@ export default {
       showColorSettings: false, // 控制颜色设置模态框的显示
       isRulesClosing: false, // 规则模态框是否正在关闭
       isColorSettingsClosing: false, // 颜色设置模态框是否正在关闭
+      currentLanguage: 'zh', // 默认语言为中文
+      translations: {
+        zh: {
+          gameControls: '游戏控制',
+          gameMode: '游戏模式',
+          classicMode: '经典模式',
+          speedMode: '竞速模式',
+          startGame: '开始游戏',
+          resetGame: '重置游戏',
+          viewRules: '查看游戏规则',
+          gameSpeed: '游戏速度',
+          slow: '慢',
+          fast: '快',
+          customizeStyle: '自定义样式',
+          score: '得分',
+          gameOver: '游戏结束',
+          gamePaused: '游戏暂停',
+          gameData: '游戏数据',
+          gameTime: '游戏时间',
+          speed: '速度',
+          secondsPerApple: '秒/苹果',
+          target: '目标',
+          apples: '个苹果',
+          highestScore: '最高分',
+          bestTime: '最佳时间',
+          points: '分',
+          gameRules: '游戏规则',
+          basicControls: '基本操作',
+          controlsDescription1: '使用 W, A, S, D 键或方向键控制蛇的移动方向',
+          controlsDescription2: '按空格键启动快速突进模式，直到突进到蛇身/苹果/墙体',
+          controlsDescription3: '按 ESC 键暂停游戏',
+          gameFeatures: '游戏特色',
+          featuresDescription1: '蛇撞墙或撞到自身时有1秒反应时间',
+          featuresDescription2: '在危险状态下按方向键可避免游戏结束',
+          featuresDescription3: '成功改变方向后蛇会立即移动并退出危险状态',
+          featuresDescription4: '危险状态下蛇身会闪烁发光提示',
+          featuresDescription5: '突进模式下蛇会以极快速度移动，直到撞到障碍物或吃到苹果',
+          gameModes: '游戏模式',
+          classicModeDescription: '无时间限制，吃尽可能多的苹果，撞墙或自身则结束游戏。',
+          speedModeDescription: '竞速吃够40个苹果，比拼最短完成时间。',
+          tips: '小提示',
+          tipsDescription1: '提前计划路线避免死路',
+          tipsDescription2: '蛇撞墙后及时转向可以挽救危机',
+          tipsDescription3: '合理使用空格突进可以快速抢食苹果',
+          tipsDescription4: '注意观察危险提示，把握逃脱时机',
+          snakeColor: '蛇的颜色',
+          appleColor: '苹果颜色',
+          dangerColor: '危险提示颜色',
+          presets: '预设方案',
+          defaultColor: '默认配色',
+          darkMode: '暗黑模式',
+          neonStyle: '霓虹风格',
+          countdown: '倒计时',
+          classicModeDesc: '无时间限制，吃尽可能多的苹果，撞墙或自身则结束游戏。',
+          speedModeDesc: '竞速吃够40个苹果，比拼最短完成时间。',
+          congratulations: '恭喜！您完成了竞速模式！用时'
+        },
+        en: {
+          gameControls: 'Game Controls',
+          gameMode: 'Game Mode',
+          classicMode: 'Classic Mode',
+          speedMode: 'Speed Mode',
+          startGame: 'Start Game',
+          resetGame: 'Reset Game',
+          viewRules: 'View Rules',
+          gameSpeed: 'Game Speed',
+          slow: 'Slow',
+          fast: 'Fast',
+          customizeStyle: 'Customize Style',
+          score: 'Score',
+          gameOver: 'Game Over',
+          gamePaused: 'Game Paused',
+          gameData: 'Game Stats',
+          gameTime: 'Game Time',
+          speed: 'Speed',
+          secondsPerApple: 's/apple',
+          target: 'Target',
+          apples: 'apples',
+          highestScore: 'High Scores',
+          bestTime: 'Best Time',
+          points: 'pts',
+          gameRules: 'Game Rules',
+          basicControls: 'Basic Controls',
+          controlsDescription1: 'Use W, A, S, D or arrow keys to control the snake',
+          controlsDescription2: 'Press Space to dash until hitting a wall/apple/snake',
+          controlsDescription3: 'Press ESC to pause the game',
+          gameFeatures: 'Game Features',
+          featuresDescription1: 'Snake has 1 second reaction time when hitting walls or itself',
+          featuresDescription2: 'Change direction during danger state to avoid game over',
+          featuresDescription3: 'Successfully changing direction moves the snake immediately',
+          featuresDescription4: 'Snake will flash in danger state',
+          featuresDescription5: 'Dash mode makes the snake move extremely fast until hitting an obstacle',
+          gameModes: 'Game Modes',
+          classicModeDescription: 'No time limit, eat as many apples as possible.',
+          speedModeDescription: 'Race to eat 40 apples in the shortest time.',
+          tips: 'Tips',
+          tipsDescription1: 'Plan your route in advance to avoid dead ends',
+          tipsDescription2: 'Quickly change direction after hitting a wall to save yourself',
+          tipsDescription3: 'Use space dash wisely to quickly grab apples',
+          tipsDescription4: 'Pay attention to danger indicators and react in time',
+          snakeColor: 'Snake Color',
+          appleColor: 'Apple Color',
+          dangerColor: 'Danger Color',
+          presets: 'Presets',
+          defaultColor: 'Default Colors',
+          darkMode: 'Dark Mode',
+          neonStyle: 'Neon Style',
+          countdown: 'Countdown',
+          classicModeDesc: 'No time limit, eat as many apples as possible.',
+          speedModeDesc: 'Race to eat 40 apples in the shortest time.',
+          congratulations: 'Congratulations! You completed Speed Mode in'
+        }
+      }
     }
   },
   created() {
@@ -263,6 +382,9 @@ export default {
     
     // 加载速度设置
     this.loadSpeedSettings()
+    
+    // 加载语言设置
+    this.loadLanguageSettings()
   },
   mounted() {
     // 添加键盘事件监听
@@ -277,9 +399,9 @@ export default {
     // 根据游戏模式返回描述
     gameModeDescription() {
       if (this.gameMode === 'classic') {
-        return '无时间限制，吃尽可能多的苹果，撞墙或自身则结束游戏。'
+        return this.t('classicModeDesc');
       } else {
-        return '竞速吃够40个苹果，比拼最短完成时间。'
+        return this.t('speedModeDesc');
       }
     },
     
@@ -289,6 +411,29 @@ export default {
     }
   },
   methods: {
+    // 国际化翻译方法
+    t(key) {
+      return this.translations[this.currentLanguage][key] || key;
+    },
+    
+    // 切换语言
+    toggleLanguage() {
+      this.currentLanguage = this.currentLanguage === 'zh' ? 'en' : 'zh';
+      this.saveLanguageSettings();
+    },
+    
+    // 保存语言设置
+    saveLanguageSettings() {
+      localStorage.setItem('snakeLanguage', this.currentLanguage);
+    },
+    
+    // 加载语言设置
+    loadLanguageSettings() {
+      const storedLanguage = localStorage.getItem('snakeLanguage');
+      if (storedLanguage) {
+        this.currentLanguage = storedLanguage;
+      }
+    },
     initializeBoard() {
       // 创建 boardSize x boardSize 的游戏板
       this.cells = Array(this.boardSize * this.boardSize).fill(0)
@@ -829,7 +974,7 @@ export default {
       this.updateHighScores()
       
       // 显示完成提示
-      alert(`恭喜！您完成了竞速模式！用时: ${this.formatTime(this.gameTime)}`)
+      alert(`${this.t('congratulations')}: ${this.formatTime(this.gameTime)}`)
     },
     startCollisionDelay() {
       this.collisionDelay = true;
@@ -1689,5 +1834,44 @@ input[type="color"] {
 
 .color-setting-item h3 {
   margin-bottom: 10px;
+}
+
+.language-switcher {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.language-select {
+  background-color: rgba(30, 30, 60, 0.7);
+  color: #4ecca3;
+  padding: 8px 15px;
+  border: 1px solid #4ecca3;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  width: auto;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%234ecca3' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 30px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.language-select:hover {
+  background-color: rgba(40, 40, 80, 0.9);
+}
+
+.language-select option {
+  background-color: #1e1e3e;
+  color: #4ecca3;
+  padding: 10px;
+  font-size: 0.95rem;
 }
 </style> 
