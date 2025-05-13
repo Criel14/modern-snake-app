@@ -1,24 +1,29 @@
-# modern-snake-app
+# 现代贪吃蛇Moden Snake
 
-## Project setup
+
+
+## 启动项目
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
-```
-npm run build
-```
 
-### Lints and fixes files
-```
-npm run lint
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 项目描述
+
+体验Cursor，没写一行代码，全靠自然语言；
+
+游戏是在经典贪吃蛇上加入了**突进**操作，以及**磕墙**操作；
+
+模型选择Claude 3.7，基本功能可以很快实现，但是复杂的游戏逻辑需要一步步引导，描述具体的算法，例如撞墙后执行怎样的逻辑，怎样计时等；
+
+
+
+## 项目体验
+
+https://criel-snake-game.netlify.app/
+
