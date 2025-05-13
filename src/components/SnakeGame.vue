@@ -214,6 +214,52 @@
       </div>
     </div>
   </div>
+  
+  <!-- 游戏结束模态框 -->
+  <div class="modal-overlay" 
+       v-if="showGameEnd" 
+       @click="hideGameEnd"
+       :class="{ 'fade-out': isGameEndClosing }">
+    <div class="modal-content game-end-modal" 
+         @click.stop
+         :class="{ 'slide-down': isGameEndClosing }">
+      <div class="modal-header">
+        <h2>{{ t('gameComplete') }}</h2>
+        <button class="close-button" @click="hideGameEnd">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="game-end-message">
+          <h3 v-if="gameMode === 'speed'">{{ t('speedModeComplete') }}!</h3>
+          <h3 v-else>{{ t('classicModeEnd') }}!</h3>
+          
+          <div class="game-result">
+            <div class="result-item" v-if="gameMode === 'speed'">
+              <span class="result-label">{{ t('completionTime') }}:</span>
+              <span class="result-value highlight">{{ formatTime(gameTime) }}</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">{{ t('finalScore') }}:</span>
+              <span class="result-value highlight">{{ score }}</span>
+            </div>
+            <div class="result-item" v-if="score > 0">
+              <span class="result-label">{{ t('averageSpeed') }}:</span>
+              <span class="result-value">{{ timePerApple }}{{ t('secondsPerApple') }}</span>
+            </div>
+          </div>
+          
+          <div class="high-score-status" v-if="isHighScore">
+            <div class="high-score-icon">🏆</div>
+            <div class="high-score-message">{{ t('newHighScore') }}!</div>
+          </div>
+        </div>
+        
+        <div class="game-end-actions">
+          <button class="play-again-button" @click="playAgain">{{ t('playAgain') }}</button>
+          <button class="change-mode-button" @click="changeGameMode">{{ t('changeMode') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -255,6 +301,9 @@ export default {
       showColorSettings: false, // 控制颜色设置模态框的显示
       isRulesClosing: false, // 规则模态框是否正在关闭
       isColorSettingsClosing: false, // 颜色设置模态框是否正在关闭
+      showGameEnd: false, // 控制游戏结束模态框的显示
+      isGameEndClosing: false, // 游戏结束模态框是否正在关闭
+      isHighScore: false, // 是否创造了新的高分
       currentLanguage: 'zh', // 默认语言为中文
       translations: {
         zh: {
@@ -310,7 +359,16 @@ export default {
           countdown: '倒计时',
           classicModeDesc: '无时间限制，吃尽可能多的苹果，撞墙或自身则结束游戏。',
           speedModeDesc: '竞速吃够40个苹果，比拼最短完成时间。',
-          congratulations: '恭喜！您完成了竞速模式！用时'
+          congratulations: '恭喜！您完成了竞速模式！用时',
+          gameComplete: '游戏结束',
+          speedModeComplete: '竞速模式完成',
+          classicModeEnd: '经典模式结束',
+          completionTime: '完成时间',
+          finalScore: '最终得分',
+          averageSpeed: '平均速度',
+          newHighScore: '新的高分记录',
+          playAgain: '再玩一次',
+          changeMode: '切换模式'
         },
         en: {
           gameControls: 'Game Controls',
@@ -365,7 +423,16 @@ export default {
           countdown: 'Countdown',
           classicModeDesc: 'No time limit, eat as many apples as possible.',
           speedModeDesc: 'Race to eat 40 apples in the shortest time.',
-          congratulations: 'Congratulations! You completed Speed Mode in'
+          congratulations: 'Congratulations! You completed Speed Mode in',
+          gameComplete: 'Game Complete',
+          speedModeComplete: 'Speed Mode Complete',
+          classicModeEnd: 'Classic Mode End',
+          completionTime: 'Completion Time',
+          finalScore: 'Final Score',
+          averageSpeed: 'Average Speed',
+          newHighScore: 'New High Score',
+          playAgain: 'Play Again',
+          changeMode: 'Change Mode'
         }
       }
     }
@@ -462,6 +529,11 @@ export default {
     },
     startGameCountdown() {
       if (this.gameRunning || this.countdownActive) return
+      
+      // 关闭游戏结束模态框，如果它是打开的
+      if (this.showGameEnd) {
+        this.hideGameEnd()
+      }
       
       this.countdownActive = true
       this.countdown = 3
@@ -832,12 +904,16 @@ export default {
       clearInterval(this.gameInterval)
       
       // 更新高分
-      this.updateHighScores()
+      this.isHighScore = this.updateHighScores()
+      
+      // 显示游戏结束模态框
+      this.showGameEndModal()
     },
     updateHighScores() {
       const score = this.score
       const time = this.gameTime
       const mode = this.gameMode
+      let isHighScore = false
       
       // 根据游戏模式确定排行榜存储键
       const storageKey = `snakeHighScores_${mode}`
@@ -851,12 +927,18 @@ export default {
         highScores.push({ score, time })
         // 按分数排序
         highScores.sort((a, b) => b.score - a.score)
+        
+        // 检查是否是新的高分（前5名）
+        isHighScore = highScores.findIndex(item => item.score === score && item.time === time) < 5
       } else {
         // 竞速模式记录完成时间
         if (score >= 40) {
           highScores.push({ score, time })
           // 按时间排序（最短时间在前）
           highScores.sort((a, b) => a.time - b.time)
+          
+          // 检查是否是新的高分（前5名）
+          isHighScore = highScores.findIndex(item => item.score === score && item.time === time) < 5
         }
       }
       
@@ -868,6 +950,8 @@ export default {
       
       // 保存到本地存储
       localStorage.setItem(storageKey, JSON.stringify(highScores))
+      
+      return isHighScore
     },
     // 辅助方法
     getIndex(x, y) {
@@ -971,10 +1055,10 @@ export default {
       clearInterval(this.gameTimeInterval)
       
       // 更新高分
-      this.updateHighScores()
+      this.isHighScore = this.updateHighScores()
       
-      // 显示完成提示
-      alert(`${this.t('congratulations')}: ${this.formatTime(this.gameTime)}`)
+      // 显示游戏结束模态框
+      this.showGameEndModal()
     },
     startCollisionDelay() {
       this.collisionDelay = true;
@@ -1203,6 +1287,35 @@ export default {
         this.showColorSettings = false;
         this.isColorSettingsClosing = false;
       }, 300); // 与CSS动画时长匹配
+    },
+    showGameEndModal() {
+      this.isGameEndClosing = false
+      this.showGameEnd = true
+    },
+    hideGameEnd() {
+      // 先设置关闭动画状态
+      this.isGameEndClosing = true
+      
+      // 动画结束后关闭模态框
+      setTimeout(() => {
+        this.showGameEnd = false
+        this.isGameEndClosing = false
+      }, 300) // 与CSS动画时长匹配
+    },
+    changeGameMode() {
+      // 切换游戏模式
+      this.setGameMode(this.gameMode === 'classic' ? 'speed' : 'classic')
+      this.hideGameEnd()
+    },
+    // 添加新方法 playAgain 处理再玩一次的点击事件
+    playAgain() {
+      // 隐藏模态框
+      this.hideGameEnd()
+      
+      // 延迟一点点再开始游戏，确保模态框完全关闭
+      setTimeout(() => {
+        this.startGameCountdown()
+      }, 300)
     },
   },
   watch: {
@@ -1873,5 +1986,106 @@ input[type="color"] {
   color: #4ecca3;
   padding: 10px;
   font-size: 0.95rem;
+}
+
+/* 游戏结束模态框 */
+.game-end-modal {
+  width: 90%;
+  max-width: 500px;
+}
+
+.game-end-message {
+  text-align: center;
+  padding: 10px 0 25px 0;
+}
+
+.game-end-message h3 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #4ecca3;
+}
+
+.game-result {
+  margin: 25px 0;
+  background-color: rgba(40, 40, 80, 0.5);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0;
+  font-size: 1.1rem;
+}
+
+.result-value {
+  font-weight: bold;
+  color: #ddd;
+}
+
+.result-value.highlight {
+  color: #4ecca3;
+  font-size: 1.3rem;
+}
+
+.high-score-status {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: pulse 1.5s infinite alternate;
+}
+
+.high-score-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.high-score-message {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: gold;
+}
+
+.game-end-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.play-again-button, .change-mode-button {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.play-again-button {
+  background-color: #4ecca3;
+  color: #1a1a2e;
+}
+
+.play-again-button:hover {
+  background-color: #3dbb92;
+}
+
+.change-mode-button {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.change-mode-button:hover {
+  background-color: #2563eb;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(1.05); opacity: 1; }
 }
 </style> 
