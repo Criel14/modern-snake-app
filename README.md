@@ -1,4 +1,4 @@
-# 现代贪吃蛇Moden Snake
+# 现代贪吃蛇Modern Snake
 
 
 
